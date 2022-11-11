@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.0.final using JasperReports Library version 5.5.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report2" pageWidth="800" pageHeight="2895" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="760" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isIgnorePagination="true" uuid="4116e12e-d8a3-432c-b7cb-7f38da3ec89f">
+	<property name="ireport.zoom" value="2.6620000000000017"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="27"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="BKRM_SIT"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
+	<style name="Crosstab_CH" mode="Opaque" backcolor="#7DC0D6">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Crosstab_CG" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Crosstab_CT" mode="Opaque" backcolor="#005FB3">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Crosstab_CD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="test_data" uuid="3dfb77d7-832c-44fb-8dd6-72f3aa3b3602">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="BKRM_SIT"/>
+		<queryString language="SQL">
+			<![CDATA[SELECT 
+   'Store Sales' as Sales, 
+   current_date::date as date,
+   1000 as SalesFact
+   union
+   SELECT 
+   'Store' as Sales, 
+   (current_date)::date as date,
+   2000 as SalesFact]]>
+		</queryString>
+		<field name="sales" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="sales"/>
+			<property name="com.jaspersoft.studio.field.label" value="sales"/>
+		</field>
+		<field name="date" class="java.sql.Date">
+			<property name="com.jaspersoft.studio.field.name" value="date"/>
+			<property name="com.jaspersoft.studio.field.label" value="date"/>
+		</field>
+		<field name="salesfact" class="java.lang.Integer">
+			<property name="com.jaspersoft.studio.field.name" value="salesfact"/>
+			<property name="com.jaspersoft.studio.field.label" value="salesfact"/>
+		</field>
+	</subDataset>
+	<subDataset name="sum_dataset" uuid="92fefd3e-4993-4137-88fb-98922cde02a1">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="BKRM_SIT"/>
+		<queryString language="SQL">
+			<![CDATA[select 
+total.month as month,
+sum(total.paytotal) as sumPayTotal
+from
+(
+	(
+		with calc as 
+		(
+			select  
+			to_char(pt.posting_date,'Mon-yyyy') as posting_date,
+			to_char(pt.posting_date,'mm') as order_date,
+			ag.description as agency_name,
+			sum(pt.amount) as amount 
+			FROM 
+			ptragency_payment_transaction pt
+			inner join ptragency ag on ag.id = pt.agency_id
+			where pt.posting_date between date_trunc('year',current_date) + interval '-12 month' and date_trunc('year',current_date) + interval '-1 day'
+			group by pt.posting_date, ag.description
+			order by order_date 
+		)
+		select 
+		c.posting_date as month,
+		c.agency_name as sbw, --month
+		sum(coalesce(c.amount,0)) as paytotal
+		from calc c
+		group by c.posting_date,c.order_date,c.agency_name
+		order by c.order_date
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'CCR Networks Sdn Bhd' as sbw,
+			3000::numeric
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'Sunshine' as sbw,
+			5000::numeric
+		)	
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'TKC' as sbw,
+			8000::numeric
+		)	
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'BCD' as sbw,
+			8000::numeric
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'NNA' as sbw,
+			8000::numeric
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'GGG' as sbw,
+			3000::numeric
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'CCC' as sbw,
+			5000::numeric
+		)	
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'AAA' as sbw,
+			8000::numeric
+		)	
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'EEE' as sbw,
+			8000::numeric
+		)
+		union all
+		(
+			select 
+			'Sept 2021' as month,
+			'QQQ' as sbw,
+			8000::numeric
+		)
+		union all
+		(
+			select 
+			'Oct 2021' as month,
+			'CCR Networks Sdn Bhd' as sbw,
+			3000::numeric
+		)
+		union all
+		(
+			select 
+			'Oct 2021' as month,
+			'Sunshine' as sbw,
+			5000::numeric
+		)	
+		union all
+		(
+			select 
+			'Oct 2021' as month,
+			'TKC' as sbw,
+			8000::numeric
+		)
+) as total
+group by total.month]]>
+		</queryString>
+		<field name="month" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="month"/>
+			<property name="com.jaspersoft.studio.field.label" value="month"/>
+		</field>
+		<field name="sumpaytotal" class="java.math.BigDecimal">
+			<property name="com.jaspersoft.studio.field.name" value="sumpaytotal"/>
+			<property name="com.jaspersoft.studio.field.label" value="sumpaytotal"/>
+		</field>
+	</subDataset>
+	<queryString>
+		<![CDATA[(
+with calc as 
+(
+	select  
+	to_char(pt.posting_date,'Mon-yyyy') as posting_date,
+	to_char(pt.posting_date,'mm') as order_date,
+	ag.description as agency_name,
+	sum(pt.amount) as amount 
+	FROM 
+	ptragency_payment_transaction pt
+	inner join ptragency ag on ag.id = pt.agency_id
+	where pt.posting_date between date_trunc('year',current_date) + interval '-12 month' and date_trunc('year',current_date) + interval '-1 day'
+	group by pt.posting_date, ag.description
+	order by order_date 
+)
+select 
+c.posting_date as month,
+c.agency_name as sbw, --month
+sum(coalesce(c.amount,0)) as paytotal
+from calc c
+group by c.posting_date,c.order_date,c.agency_name
+order by c.order_date
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'CCR Networks Sdn Bhd' as sbw,
+	3000::numeric
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'Sunshine' as sbw,
+	5000::numeric
+)	
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'TKC' as sbw,
+	8000::numeric
+)	
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'BCD' as sbw,
+	8000::numeric
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'NNA' as sbw,
+	8000::numeric
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'GGG' as sbw,
+	3000::numeric
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'CCC' as sbw,
+	5000::numeric
+)	
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'AAA' as sbw,
+	8000::numeric
+)	
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'EEE' as sbw,
+	8000::numeric
+)
+union all
+(
+	select 
+	'Sept 2021' as month,
+	'QQQ' as sbw,
+	8000::numeric
+)
+union all
+(
+	select 
+	'Oct 2021' as month,
+	'CCR Networks Sdn Bhd' as sbw,
+	3000::numeric
+)
+union all
+(
+	select 
+	'Oct 2021' as month,
+	'Sunshine' as sbw,
+	5000::numeric
+)	
+union all
+(
+	select 
+	'Oct 2021' as month,
+	'TKC' as sbw,
+	8000::numeric
+)]]>
+	</queryString>
+	<field name="month" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="month"/>
+		<property name="com.jaspersoft.studio.field.label" value="month"/>
+	</field>
+	<field name="sbw" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="sbw"/>
+		<property name="com.jaspersoft.studio.field.label" value="sbw"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="ptragency"/>
+	</field>
+	<field name="paytotal" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="paytotal"/>
+		<property name="com.jaspersoft.studio.field.label" value="paytotal"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="1" width="760" height="20" uuid="3fb4e0ff-03f5-41a1-a12f-0606905b87ca"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tuto - Chart (Complex)"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="2051" splitType="Stretch">
+			<crosstab>
+				<reportElement x="0" y="0" width="760" height="260" uuid="eb8cfb84-0f38-413b-a39b-f2740ce3c9fc">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+					<property name="com.jaspersoft.studio.crosstab.style.header" value="Crosstab_CH"/>
+					<property name="com.jaspersoft.studio.crosstab.style.group" value="Crosstab_CG"/>
+					<property name="com.jaspersoft.studio.crosstab.style.total" value="Crosstab_CT"/>
+					<property name="com.jaspersoft.studio.crosstab.style.detail" value="Crosstab_CD"/>
+				</reportElement>
+				<crosstabDataset>
+					<dataset resetType="Report"/>
+				</crosstabDataset>
+				<crosstabHeaderCell>
+					<cellContents>
+						<staticText>
+							<reportElement mode="Opaque" x="0" y="0" width="200" height="20" backcolor="#999999" uuid="1fb845fa-9467-4d2d-9dc7-2d705e3bd073"/>
+							<box>
+								<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font isBold="true"/>
+							</textElement>
+							<text><![CDATA[DCA NAME]]></text>
+						</staticText>
+					</cellContents>
+				</crosstabHeaderCell>
+				<rowGroup name="sbw" width="200" totalPosition="End">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{sbw}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents mode="Opaque" style="Crosstab_CH">
+							<textField isBlankWhenNull="true">
+								<reportElement style="Crosstab_CD" x="0" y="0" width="200" height="20" uuid="2fb4e68d-7677-4d0d-bb23-b14d3b27cca5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$V{sbw}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents mode="Opaque" style="Crosstab_CT">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="200" height="20" forecolor="#000000" backcolor="#999999" uuid="6a49a3a3-2676-4d82-9b71-b962901da220"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[Total]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="month" height="20" totalPosition="End">
+					<bucket order="None" class="java.lang.String">
+						<bucketExpression><![CDATA[$F{month}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents mode="Opaque" style="Crosstab_CH">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="20" uuid="98be53fc-ecc8-4004-952f-1dd47c3b1838"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{month}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents mode="Opaque" style="Crosstab_CT">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<textField isStretchWithOverflow="true" pattern="MMM-yy">
+								<reportElement mode="Opaque" x="0" y="0" width="160" height="20" forecolor="#000000" backcolor="#999999" uuid="551e19a2-6e29-429c-af0f-6da955f08d5a"/>
+								<box leftPadding="5" rightPadding="5">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5" lineColor="#000000"/>
+									<leftPen lineWidth="0.5" lineColor="#000000"/>
+									<bottomPen lineWidth="0.5" lineColor="#000000"/>
+									<rightPen lineWidth="0.5" lineColor="#000000"/>
+								</box>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA["Total Collection "+new SimpleDateFormat("YYYY").format(new Date())]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="paytotal_MEASURE" class="java.math.BigDecimal" calculation="Sum">
+					<measureExpression><![CDATA[$F{paytotal}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="20">
+					<cellContents mode="Opaque" style="Crosstab_CD">
+						<textField pattern="#,##0.00">
+							<reportElement x="0" y="0" width="100" height="20" uuid="b9c78397-8a41-47cc-9500-24f800120731"/>
+							<box rightPadding="3"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$V{paytotal_MEASURE}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="160" height="20" columnTotalGroup="month">
+					<cellContents mode="Opaque" style="Crosstab_CT">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<textField pattern="#,##0.00">
+							<reportElement mode="Opaque" x="0" y="0" width="160" height="20" forecolor="#000000" uuid="5df6b2b8-b55a-4b6f-ba19-c596ba70703d"/>
+							<box rightPadding="3"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{paytotal_MEASURE}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="100" height="20" rowTotalGroup="sbw">
+					<cellContents mode="Opaque" style="Crosstab_CT">
+						<textField pattern="#,##0.00">
+							<reportElement mode="Opaque" x="0" y="0" width="100" height="20" forecolor="#000000" backcolor="#999999" uuid="48cb8fe2-a3ca-44af-9afe-4833faff2f03"/>
+							<box rightPadding="3"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{paytotal_MEASURE}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="160" height="20" rowTotalGroup="sbw" columnTotalGroup="month">
+					<cellContents mode="Opaque" style="Crosstab_CT">
+						<textField pattern="#,##0.00">
+							<reportElement mode="Opaque" x="0" y="0" width="160" height="20" forecolor="#000000" backcolor="#999999" uuid="3bdafbef-316d-4875-bfab-82f8e618aca8"/>
+							<box rightPadding="3"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{paytotal_MEASURE}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<stackedBarChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="350" width="760" height="200" uuid="a4c0f1a7-0459-47e6-a20e-ec236de1c9e0"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset resetType="Report">
+						<datasetRun subDataset="test_data" uuid="f6873ba6-0ca0-4b8d-abca-d0766ef7fa5c">
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{sales}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{date}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{salesfact}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<barPlot>
+					<plot/>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</valueAxisFormat>
+				</barPlot>
+			</stackedBarChart>
+			<barChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="850" width="760" height="200" uuid="a6d37d42-ef5d-4c9d-81a9-aaf22d12d69a"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset resetType="Report"/>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{sbw}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{paytotal}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<barPlot>
+					<plot/>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</valueAxisFormat>
+				</barPlot>
+			</barChart>
+			<bar3DChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="590" width="760" height="200" uuid="65672ccc-4428-4df7-8889-8c45c471829d"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset resetType="Report"/>
+					<categorySeries>
+						<seriesExpression><![CDATA[$F{sbw}]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{paytotal}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<bar3DPlot>
+					<plot/>
+					<itemLabel/>
+					<categoryAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</valueAxisFormat>
+				</bar3DPlot>
+			</bar3DChart>
+			<multiAxisChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="1090" width="760" height="240" uuid="beb5de91-d764-44a3-9845-e04df16da2e0"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<multiAxisPlot>
+					<plot/>
+					<axis position="rightOrBottom">
+						<lineChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF" uuid="4a2daef1-6273-4ad1-aa0a-51f8f4197af2"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report">
+									<datasetRun subDataset="sum_dataset" uuid="72aee941-dc25-493a-8643-785f65e05eac"/>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{sumpaytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot isShowLines="true">
+								<plot/>
+								<categoryAxisFormat>
+									<axisFormat/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat labelColor="#000000" tickLabelColor="#FF0400" axisLineColor="#E04A48"/>
+								</valueAxisFormat>
+								<rangeAxisMinValueExpression><![CDATA[0]]></rangeAxisMinValueExpression>
+								<rangeAxisMaxValueExpression><![CDATA[80000]]></rangeAxisMaxValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+					<axis>
+						<barChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF" uuid="2141cd62-fc19-4500-95ae-7c83c45e45fa"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report"/>
+								<categorySeries>
+									<seriesExpression><![CDATA[$F{sbw}]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{paytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<barPlot>
+								<plot/>
+								<itemLabel/>
+								<categoryAxisFormat>
+									<axisFormat/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat/>
+								</valueAxisFormat>
+								<rangeAxisMinValueExpression><![CDATA[0]]></rangeAxisMinValueExpression>
+								<rangeAxisMaxValueExpression><![CDATA[20000]]></rangeAxisMaxValueExpression>
+							</barPlot>
+						</barChart>
+					</axis>
+					<axis position="rightOrBottom">
+						<barChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF" uuid="2c38aa8f-e889-41f2-b330-7fc506ead19b"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report">
+									<datasetRun subDataset="sum_dataset" uuid="c9da3433-2c5d-4790-b3aa-25d3908a6425"/>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{sumpaytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<barPlot isShowLabels="true" isShowTickLabels="false" isShowTickMarks="false">
+								<plot>
+									<seriesColor seriesOrder="0" color="rgba(84, 239, 73, 0.0)"/>
+								</plot>
+								<itemLabel/>
+								<categoryAxisFormat>
+									<axisFormat/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat axisLineColor="#FFFFFF"/>
+								</valueAxisFormat>
+							</barPlot>
+						</barChart>
+					</axis>
+				</multiAxisPlot>
+			</multiAxisChart>
+			<lineChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="1427" width="760" height="273" uuid="744bcf90-a573-47ed-ac17-1cf5651b19b9"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend position="Bottom"/>
+				</chart>
+				<categoryDataset>
+					<dataset resetType="Report">
+						<datasetRun subDataset="sum_dataset" uuid="369c88b7-7746-411d-95a5-18161eec6087"/>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{sumpaytotal}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot isShowLines="true" isShowShapes="false">
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#FF0400" axisLineColor="#000000"/>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+			<multiAxisChart>
+				<chart evaluationTime="Report">
+					<reportElement x="0" y="1740" width="760" height="240" uuid="46852fcd-477a-44e4-878d-d7ce5614901c"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<multiAxisPlot>
+					<plot/>
+					<axis position="rightOrBottom">
+						<lineChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF" uuid="4befaf91-ed27-4e3c-bc58-b481f0e39f2f"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report">
+									<datasetRun subDataset="sum_dataset" uuid="9b8b2020-cbe7-4f4b-b618-9a222cc060c6"/>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{sumpaytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<linePlot isShowLines="true">
+								<plot/>
+								<categoryAxisFormat>
+									<axisFormat/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat labelColor="#000000" tickLabelColor="#FF0400" axisLineColor="#E04A48"/>
+								</valueAxisFormat>
+								<rangeAxisMinValueExpression><![CDATA[0]]></rangeAxisMinValueExpression>
+								<rangeAxisMaxValueExpression><![CDATA[80000]]></rangeAxisMaxValueExpression>
+							</linePlot>
+						</lineChart>
+					</axis>
+					<axis>
+						<bar3DChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="720" width="760" height="200" backcolor="#FFFFFF" uuid="1fd3635c-7772-4e2c-9bec-9f1d725e8d95"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report"/>
+								<categorySeries>
+									<seriesExpression><![CDATA[$F{sbw}]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{paytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<bar3DPlot>
+								<plot/>
+								<itemLabel/>
+								<categoryAxisFormat>
+									<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+								</valueAxisFormat>
+							</bar3DPlot>
+						</bar3DChart>
+					</axis>
+					<axis position="rightOrBottom">
+						<barChart>
+							<chart evaluationTime="Report">
+								<reportElement x="0" y="0" width="0" height="0" backcolor="#FFFFFF" uuid="0b87c538-c6e9-41e2-86a2-9b697ff657ec"/>
+								<chartTitle color="#000000"/>
+								<chartSubtitle color="#000000"/>
+								<chartLegend textColor="#000000" backgroundColor="#FFFFFF"/>
+							</chart>
+							<categoryDataset>
+								<dataset resetType="Report">
+									<datasetRun subDataset="sum_dataset" uuid="8113a726-c42d-48a2-bc33-28c6ca5efa08"/>
+								</dataset>
+								<categorySeries>
+									<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+									<categoryExpression><![CDATA[$F{month}]]></categoryExpression>
+									<valueExpression><![CDATA[$F{sumpaytotal}]]></valueExpression>
+								</categorySeries>
+							</categoryDataset>
+							<barPlot isShowLabels="true" isShowTickLabels="false" isShowTickMarks="false">
+								<plot>
+									<seriesColor seriesOrder="0" color="rgba(84, 239, 73, 0.0)"/>
+								</plot>
+								<itemLabel/>
+								<categoryAxisFormat>
+									<axisFormat/>
+								</categoryAxisFormat>
+								<valueAxisFormat>
+									<axisFormat axisLineColor="#FFFFFF"/>
+								</valueAxisFormat>
+							</barPlot>
+						</barChart>
+					</axis>
+				</multiAxisPlot>
+			</multiAxisChart>
+		</band>
+	</summary>
+</jasperReport>
